@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<!-- saved from url=(0059)http://samplestitch.com.s3-website-us-east-1.amazonaws.com/ -->
+<!-- based on
+ https://github.com/sonph/metronome
+ https://stackoverflow.com/questions/29606764/javascript-timer-memory-leak
+ https://web.dev/audio-scheduling/
+ https://stackoverflow.com/questions/36211993/audiocontext-timing-issues-when-window-gets-minimized
+ https://github.com/cwilso/metronome
+ -->
+<html lang="">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Keyboard DJ Mix Pad Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="./assets/style.css" type="text/css" media="all">
+    <!--    <link href="./try/fonts.css" rel="stylesheet" type="text/css">-->
+    <script src="./assets/jquery.min.js"></script>
+    <!--    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>-->
+    <!--    <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"></script>-->
+    <script type="text/javascript" src="./assets/velocity.min.js" charset="utf-8"></script>
+    <style>
+        /*@-moz-document url-prefix() {
+            .hide-visual {
+                display: none;
+            }
+        }*/
+    </style>
+    <script src="./assets/AudioContextMonkeyPatch.js"></script>
+    <script src="./assets/metronome.js"></script>
+
+</head>
+
+<body>
+
+<div id="player">
+
+
+    <div id="metronome">
+        <div id="notes">
+            <div class="note_item" id="note_0">
+            </div>
+            <div class="note_item" id="note_1">
+            </div>
+            <div class="note_item" id="note_2">
+            </div>
+            <div class="note_item" id="note_3" style="margin-right: 12px; border-right: 5px solid #fff;">
+            </div>
+            <div class="note_item" id="note_4">
+            </div>
+            <div class="note_item" id="note_5">
+            </div>
+            <div class="note_item" id="note_6">
+            </div>
+            <div class="note_item" id="note_7">
+            </div>
+            <div class="note_item" id="note_8">
+            </div>
+            <div class="note_item" id="note_9">
+            </div>
+            <div class="note_item" id="note_10">
+            </div>
+            <div class="note_item" id="note_11" style="margin-right: 12px; border-right: 5px solid #fff;">
+            </div>
+            <div class="note_item" id="note_12">
+            </div>
+            <div class="note_item" id="note_13">
+            </div>
+            <div class="note_item" id="note_14">
+            </div>
+            <div class="note_item" id="note_15" style="border-right: 5px solid #fff">
+            </div>
+        </div>
+    </div>
+
+
+    <div id="player-top" class="" style="display: block; opacity: 1;">
+        <div class="note-length-title mobile-hide">
+            <p>NOTE LENGTH</p>
+        </div>
+        <div id="note-length" class="mobile-hide">
+            <div id="note-bar-wrapper">
+                <div id="note-bar-container">
+                    <!-- fractions -->
+                    <div class="white" style="position: absolute; left: 0; top:-20px;">
+                        <p class="fraction">⅛</p>
+                    </div>
+                    <div class="white" style="position: absolute; left: 74px; top:-20px;"><p class="fraction">¼</p>
+                    </div>
+                    <div class="white" style="position: absolute; left: 192px; top:-20px;"><p class="fraction">⅜</p>
+                    </div>
+                    <div class="white" style="position: absolute; left: 272px; top:-20px;"><p class="fraction">½</p>
+                    </div>
+                    <!-- top borders -->
+                    <div class="note-bar-border"
+                         style="width: 100%; height: 2px; top:0; border-top: 2px solid #fff;"></div>
+                    <!--middle borders -->
+                    <div class="note-bar-border" style="width: 2px;
+				height: 18px;
+				position: absolute;
+				top: 2px;
+				left: 80px;
+				border-left: 2px solid rgba(35,35,35,.8);
+				z-index: 100000;
+				border-right: 2px solid rgba(35,35,35,.8);
+				background-color: #fff;"></div>
+                    <div class="note-bar-border" style="width: 2px;
+				height: 18px;
+				position: absolute;
+				top: 2px;
+				left: 196px;
+				border-left: 2px solid rgba(35,35,35,.8);
+				z-index: 100000;
+				border-right: 2px solid rgba(35,35,35,.8);
+				background-color: #fff;"></div>
+                    <div class="note-bar-border" style="width: 2px;
+				height: 18px;
+				position: absolute;
+				top: 2px;
+				left: 276px;
+				border-left: 2px solid rgba(35,35,35,.8);
+				z-index: 100000;
+				background-color: #fff;"></div>
+
+                    <!--meters -->
+                    <div id="note-bar-full-third">
+                    </div>
+                    <div id="note-bar-full-second-half">
+                    </div>
+                    <div id="note-bar-full-second">
+                    </div>
+                    <div id="note-bar-full">
+                    </div>
+                    <!--bottom borders -->
+                    <div class="note-bar-border"
+                         style="width: 100%; height: 2px; top:18px; border-bottom: 2px solid #fff;"></div>
+
+
+                    <div class="hold-it" style="left: 62px; top: 30px;" id="first-hold">
+                        <p>hold it</p>
+                    </div>
+
+                    <div class="hold-it" style="left: 178px; top: 30px;" id="second-hold">
+                        <p>hold it</p>
+                    </div>
+
+                    <div class="hold-it" style="left: 256px; top: 30px;" id="third-hold">
+                        <p>hold it</p>
+                    </div>
+                    <!-- note bar container div -->
+                </div>
+                <!-- note bar wrapper div -->
+            </div>
+            <!-- note length -->
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div id="keyboard-wrapper" class="" style="display: block; opacity: 1;">
+        <div id="keyboard">
+            <!-- top vocals -->
+            <div class="keyrow keyrow-one-margin">
+                <div class="keybutton2" id="q-button">
+                    <div class="keytitle">
+                        <p id="q-text">guitar</p>
+                    </div>
+                    <div class="keyid">
+                        <p>q</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="w-button">
+                    <div class="keytitle">
+                        <p id="w-text">guitar 2</p>
+                    </div>
+                    <div class="keyid">
+                        <p>w</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="e-button">
+                    <div class="keytitle">
+                        <p id="e-text">won't</p>
+                    </div>
+                    <div class="keyid">
+                        <p>e</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="r-button">
+                    <div class="keytitle">
+                        <p id="r-text">no no</p>
+                    </div>
+                    <div class="keyid">
+                        <p>r</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="t-button">
+                    <div class="keytitle">
+                        <p id="t-text">piano 4</p>
+                    </div>
+                    <div class="keyid">
+                        <p>t</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="y-button">
+                    <div class="keytitle">
+                        <p id="y-text">some</p>
+                    </div>
+                    <div class="keyid">
+                        <p>y</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="u-button">
+                    <div class="keytitle">
+                        <p id="u-text">they</p>
+                    </div>
+                    <div class="keyid">
+                        <p>u</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="ii-button">
+                    <div class="keytitle">
+                        <p id="ii-text">get it</p>
+                    </div>
+                    <div class="keyid">
+                        <p>i</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="o-button">
+                    <div class="keytitle">
+                        <p id="o-text">looove</p>
+                    </div>
+                    <div class="keyid">
+                        <p>o</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="p-button">
+                    <div class="keytitle">
+                        <p id="p-text">is their</p>
+                    </div>
+                    <div class="keyid">
+                        <p>p</p>
+                    </div>
+                </div>
+            </div>
+            <!-- second row vocals -->
+            <div class="keyrow keyrow-two-margin">
+                <div class="keybutton2" id="a-button">
+                    <div class="keytitle">
+                        <p id="a-text">ohhh</p>
+                    </div>
+                    <div class="keyid">
+                        <p>a</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="s-button">
+                    <div class="keytitle">
+                        <p id="s-text">happy</p>
+                    </div>
+                    <div class="keyid">
+                        <p>s</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="d-button">
+                    <div class="keytitle">
+                        <p id="d-text">ness</p>
+                    </div>
+                    <div class="keyid">
+                        <p>d</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="f-button">
+                    <div class="keytitle">
+                        <p id="f-text">organ</p>
+                    </div>
+                    <div class="keyid">
+                        <p>f</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="g-button">
+                    <div class="keytitle">
+                        <p id="g-text">yeah</p>
+                    </div>
+                    <div class="keyid">
+                        <p>g</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="h-button">
+                    <div class="keytitle">
+                        <p id="h-text">piano</p>
+                    </div>
+                    <div class="keyid">
+                        <p>h</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="j-button">
+                    <div class="keytitle">
+                        <p id="j-text">piano 2</p>
+                    </div>
+                    <div class="keyid">
+                        <p>j</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="k-button">
+                    <div class="keytitle">
+                        <p id="k-text">piano! 3</p>
+                    </div>
+                    <div class="keyid">
+                        <p>k</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="l-button">
+                    <div class="keytitle">
+                        <p id="l-text">squeeze</p>
+                    </div>
+                    <div class="keyid">
+                        <p>l</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- third row vocals -->
+
+            <div class="keyrow keyrow-three-margin" id="third-row">
+                <div class="keybutton2" id="z-button">
+                    <div class="keytitle">
+                        <p id="z-text">eeze her</p>
+                    </div>
+                    <div class="keyid">
+                        <p>z</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="x-button">
+                    <div class="keytitle">
+                        <p id="x-text">tease</p>
+                    </div>
+                    <div class="keyid">
+                        <p>x</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="c-button">
+                    <div class="keytitle">
+                        <p id="c-text">never</p>
+                    </div>
+                    <div class="keyid">
+                        <p>c</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="v-button">
+                    <div class="keytitle">
+                        <p id="v-text">her</p>
+                    </div>
+                    <div class="keyid">
+                        <p>v</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="b-button">
+                    <div class="keytitle">
+                        <p id="b-text">gotta -1</p>
+                    </div>
+                    <div class="keyid">
+                        <p>b</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="n-button">
+                    <div class="keytitle">
+                        <p id="n-text">gotta</p>
+                    </div>
+                    <div class="keyid">
+                        <p>n</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="m-button">
+                    <div class="keytitle">
+                        <p id="m-text">na na na</p>
+                    </div>
+                    <div class="keyid">
+                        <p>m</p>
+                    </div>
+                </div>
+                <div class="keybutton2" id="metronome-button">
+                    <div class="keytitle">
+                        <p id="metronome-text">metronome</p>
+                    </div>
+                    <div class="keyid">
+                        <p style="position: relative;">
+                            <svg style="width: 33px;
+				height: 33px;
+				position: absolute;
+				left: 43px;
+				top: -6px;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                 version="1.1"
+                                 baseProfile="tiny" x="0px" y="0px" width="100px" height="100px"
+                                 viewBox="5.0 -10.0 100.0 135.0" xml:space="preserve">
+				<g id="Your_Icon">
+					<path fill-rule="evenodd" fill="#000"
+                          d="M40,88h20c5.059,0,6-1.059,6-6V52h24L50,12L10,52h24v30C34,86.879,35,88,40,88z"></path>
+				</g>
+			</svg>
+                        </p>
+                    </div>
+                </div>
+                <!-- relative position div for z-index -->
+            </div>
+            <!-- end div for #player -->
+        </div>
+    </div>
+</div>
+</body>
+</html>
